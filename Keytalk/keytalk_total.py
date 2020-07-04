@@ -3,13 +3,14 @@
 """
 Created on Mon Jun  8 09:43:36 2020
 
-@author: mycelebs-it8
+@author: 윤도원
 """
 
 
 import pandas as pd
-import numpy as np
 import random
+from pronounciation_rules import pro_rules
+from unicode import join_jamos_char
 from konlpy.tag import Kkma
 
 def word_concat(meta_list, filter_list):
@@ -235,7 +236,7 @@ def filter_connection(filter1):
             return (filter1 + ' 그리고')
     return return_val
 
-def make_df(cl, ncl, cku, ncku):
+def make_df(cl, ncl, cku, ncku, ckuv, nckuv):
     is_it_clear = []
     is_it_not_clear = []
     
@@ -245,8 +246,8 @@ def make_df(cl, ncl, cku, ncku):
     for i in range(len(ncl)):
         is_it_not_clear.append(1)
     
-    clear_df = pd.DataFrame({'sentence' : cl, 'used_keytalk' : cku, 'is_it_clear' : is_it_clear})
-    not_clear_df = pd.DataFrame({'sentence' : ncl, 'used_keytalk' : ncku, 'is_it_clear' : is_it_not_clear})
+    clear_df = pd.DataFrame({'sentence' : cl, 'used_keytalk' : cku, 'used_keytalk_verbal' : ckuv, 'is_it_clear' : is_it_clear})
+    not_clear_df = pd.DataFrame({'sentence' : ncl, 'used_keytalk' : ncku, 'used_keytalk_verbal' : nckuv, 'is_it_clear' : is_it_not_clear})
     
     merged_df = pd.concat([clear_df, not_clear_df], ignore_index = True)
     
@@ -301,6 +302,8 @@ clear_list = []
 not_clear_list = []
 clear_keytalk_used = []
 not_clear_keytalk_used = []
+clear_keytalk_used_verbal = []
+not_clear_keytalk_used_verbal = []
 
 connection_words = ['이고', '이면서']
 
@@ -456,15 +459,85 @@ for i in range(repeat_num):
         
 # print('-------------------------------------------------------------------------------')
 
+for i in clear_keytalk_used:
+    change_list = i.split(',')
+    concat_str = []
+    for j in change_list:
+        j_temp = j
+        while True:
+            split_text = pro_rules(j_temp)[0]
+            change_num = pro_rules(j_temp)[1]
+            if change_num == 0:
+                strstr1 = j_temp
+                break
+            # print(split_text)
+            strstr1 = ''
+            for k in split_text:
+                if k[-1] == ' ':
+                    k[-1] = None
+                try:
+                    if len(k) == 1:
+                        strstr1 += k[0]
+                    else:
+                        concat_text = join_jamos_char(k[0], k[1], k[-1])
+                        # print(concat_text)
+                        strstr1 += concat_text
+                except:
+                    strstr1 += ' '
+            # print(strstr1)
+            j_temp = strstr1
+        concat_str.append(strstr1)
+    # print(concat_str)
+    end_str = ''
+    for j in concat_str:
+        end_str += j
+        end_str += ','
+    clear_keytalk_used_verbal.append(end_str[:-1])
+    
+for i in not_clear_keytalk_used:
+    change_list = i.split(',')
+    concat_str = []
+    for j in change_list:
+        j_temp = j
+        while True:
+            split_text = pro_rules(j_temp)[0]
+            change_num = pro_rules(j_temp)[1]
+            if change_num == 0:
+                strstr1 = j_temp
+                break
+            # print(split_text)
+            strstr1 = ''
+            for k in split_text:
+                if k[-1] == ' ':
+                    k[-1] = None
+                try:
+                    if len(k) == 1:
+                        strstr1 += k[0]
+                    else:
+                        concat_text = join_jamos_char(k[0], k[1], k[-1])
+                        # print(concat_text)
+                        strstr1 += concat_text
+                except:
+                    strstr1 += ' '
+            # print(strstr1)
+            j_temp = strstr1
+        concat_str.append(strstr1)
+    # print(concat_str)
+    end_str = ''
+    for j in concat_str:
+        end_str += j
+        end_str += ','
+    not_clear_keytalk_used_verbal.append(end_str[:-1])
+
+
+# print(clear_keytalk_used_verbal)
+# print(not_clear_keytalk_used_verbal)
+
+
 print('End')
 
-
-
-
-
-
 # 데이터프레임으로 보내기
-make_df(clear_list, not_clear_list, clear_keytalk_used, not_clear_keytalk_used)
+make_df(clear_list, not_clear_list, clear_keytalk_used, not_clear_keytalk_used, clear_keytalk_used_verbal, not_clear_keytalk_used_verbal)
 
 
 
